@@ -23,6 +23,7 @@ export default {
     // Load left leg and right left texture
     this.textures['left_leg'] = Texture.from(require('../assets/left_leg.png'))
     this.textures['right_leg'] = Texture.from(require('../assets/right_leg.png'))
+    this.textures['typo_title'] = Texture.from(require('../assets/typo_title.png'))
   },
   mounted() {
 
@@ -31,6 +32,7 @@ export default {
 
     this.container.appendChild(this.game.view);
 
+    // Spawn Actors
     let actor = new Sprite(this.textures[this.curr_img]);
     actor.x = 120
     actor.y = 330
@@ -38,6 +40,15 @@ export default {
     actor.height = 200;
     this.actor = actor
     this.game.stage.addChild(this.actor)
+
+    // Spawn Game Title
+    let title = new Sprite(this.textures['typo_title'])
+    title.x = 50
+    title.y = 100
+    title.width = 300;
+    title.height = 60;
+    this.game.stage.addChild(title)
+
 
     this.game.view.addEventListener('click', this.jump);
     this.game.view.addEventListener('touchend', this.jump);
