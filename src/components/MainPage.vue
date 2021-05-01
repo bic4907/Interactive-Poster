@@ -3,67 +3,97 @@
 </template>
 
 <script>
-import { Application, Graphics, Ticker } from 'pixi.js';
+import { Application, Sprite, Texture, Ticker } from 'pixi.js';
 
 export default {
   name: "MainPage",
   data: () => {
+    return {
+      width: 400,
+      height: 600,
 
+      jumping: false,
+      actor: null,
+
+      textures: {},
+      curr_img: 'left_leg',
+    }
+  },
+  created() {
+    // Load left leg and right left texture
+    this.textures['left_leg'] = Texture.from(require('../assets/left_leg.png'))
+    this.textures['right_leg'] = Texture.from(require('../assets/right_leg.png'))
   },
   mounted() {
-    console.log('mounted!')
-    this.game = new Application({ width: 600, height: 1000, backgroundColor: '#eeeeee' })
+
+    this.game = new Application({ width: this.width, height: this.height, backgroundColor: '#eeeeee' })
     this.container = document.querySelector('#container');
 
     this.container.appendChild(this.game.view);
 
-    let BOX_SIZE = 30
-    let rect = new Graphics();
+    let actor = new Sprite(this.textures[this.curr_img]);
+    actor.x = 120
+    actor.y = 330
+    actor.width = 140;
+    actor.height = 200;
+    this.actor = actor
+    this.game.stage.addChild(this.actor)
 
-    let CANVAS_SIZE = 600
-    rect.beginFill(0xffffff);
-    rect.lineStyle(3, 0xcccccc, 1);
-    rect.drawRect(CANVAS_SIZE / 2 - BOX_SIZE / 2, 1000 - BOX_SIZE, BOX_SIZE, BOX_SIZE);
-    rect.endFill();
+    this.game.view.addEventListener('click', this.jump);
+    this.game.view.addEventListener('touchend', this.jump);
+    this.game.view.addEventListener('keypress', this.jump);
+  },
+  methods: {
+    jump: function() {
+      let self = this
+      if (self.jumping) return;
+      self.jumping = true;
 
-    this.game.stage.addChild(rect);
+      let gravity = 1
+      let power = 15
+      let time = 0
+      let jumpAt = self.actor['y'];
 
+      let prev_height = null
+      let already_changed = false
 
-//Set Animation
-    let jumping = false;
-
-    const
-        axis = 'y',
-        direction = -1, //to Top
-        gravity = 1,
-        power = 20,
-        jumpAt = rect[axis];
-
-    const jump = () => {
-      if (jumping) return;
-      jumping = true;
-
-      let time = 0;
 
       const tick = deltaMs => {
         const jumpHeight = (-gravity / 2) * Math.pow(time, 2) + power * time;
 
+
         if (jumpHeight < 0) {
-          jumping = false;
+          self.jumping = false;
           Ticker.shared.remove(tick);
-          rect[axis] = jumpAt;
+          self.actor['y'] = jumpAt;
           return;
         }
 
-        rect[axis] = jumpAt + (jumpHeight * direction);
+        self.actor['y'] = jumpAt + (jumpHeight * -1);
+
+        if (already_changed == false && prev_height != null && (self.actor['y'] < prev_height)) {
+          self.toggleImage()
+          already_changed = true
+        }
+        prev_height = self.actor['y']
+
         time += deltaMs;
       }
 
       Ticker.shared.add(tick);
-    }
+    },
+    toggleImage: function() {
+      if(this.curr_img == 'left_leg') {
+        this.curr_img = 'right_leg'
+      } else {
+        this.curr_img = 'left_leg'
+      }
 
-    this.game.view.addEventListener('click', jump);
-    this.game.view.addEventListener('touchend', jump);
+      console.log(this.curr_img)
+      if(this.actor != null) {
+        this.actor.texture = this.textures[this.curr_img]
+      }
+    },
   }
 }
 </script>
