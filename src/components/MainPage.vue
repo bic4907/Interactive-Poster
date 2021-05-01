@@ -14,6 +14,8 @@ export default {
 
       jumping: false,
       actor: null,
+      background: null,
+      count: 0,
 
       textures: {},
       curr_img: 'left_leg',
@@ -21,6 +23,7 @@ export default {
   },
   created() {
     // Load left leg and right left texture
+    this.textures['background'] = Texture.from(require('../assets/background.jpg'))
     this.textures['left_leg'] = Texture.from(require('../assets/left_leg.png'))
     this.textures['right_leg'] = Texture.from(require('../assets/right_leg.png'))
     this.textures['typo_title'] = Texture.from(require('../assets/typo_title.png'))
@@ -32,10 +35,19 @@ export default {
 
     this.container.appendChild(this.game.view);
 
+    // Load Background
+    let background = new Sprite(this.textures['background']);
+    background.x = 0
+    background.y = 0
+    background.width = 2400;
+    background.height = 600;
+    this.background = background
+    this.game.stage.addChild(this.background)
+
     // Spawn Actors
     let actor = new Sprite(this.textures[this.curr_img]);
     actor.x = 120
-    actor.y = 330
+    actor.y = 370
     actor.width = 140;
     actor.height = 200;
     this.actor = actor
@@ -44,7 +56,7 @@ export default {
     // Spawn Game Title
     let title = new Sprite(this.textures['typo_title'])
     title.x = 50
-    title.y = 100
+    title.y = 70
     title.width = 300;
     title.height = 60;
     this.game.stage.addChild(title)
@@ -52,10 +64,16 @@ export default {
 
     this.game.view.addEventListener('click', this.jump);
     this.game.view.addEventListener('touchend', this.jump);
-    this.game.view.addEventListener('keypress', this.jump);
+    window.addEventListener('keypress', this.jump);
+
+
   },
   methods: {
     jump: function() {
+      if(this.background.x <= (2400 - 450) * -1) {
+        return
+      }
+
       let self = this
       if (self.jumping) return;
       self.jumping = true;
@@ -68,15 +86,19 @@ export default {
       let prev_height = null
       let already_changed = false
 
+      self.count -= 0.1
 
       const tick = deltaMs => {
         const jumpHeight = (-gravity / 2) * Math.pow(time, 2) + power * time;
 
+        self.moveBackground()
 
+        //if ((jumpHeight < self.count)) {
         if (jumpHeight < 0) {
           self.jumping = false;
           Ticker.shared.remove(tick);
           self.actor['y'] = jumpAt;
+          self.actor['y'] -= 5
           return;
         }
 
@@ -99,12 +121,13 @@ export default {
       } else {
         this.curr_img = 'left_leg'
       }
-
-      console.log(this.curr_img)
       if(this.actor != null) {
         this.actor.texture = this.textures[this.curr_img]
       }
     },
+    moveBackground: function() {
+      this.background.x -= 2
+    }
   }
 }
 </script>
